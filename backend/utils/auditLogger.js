@@ -1,0 +1,21 @@
+const AuditLog = require('../models/AuditLog');
+
+const logAction = async (userId, action, details, req = null) => {
+  try {
+    let ipAddress = '';
+    if (req) {
+      ipAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '';
+    }
+    
+    await AuditLog.create({
+      user: userId,
+      action,
+      details,
+      ipAddress,
+    });
+  } catch (error) {
+    console.error('Failed to write audit log:', error);
+  }
+};
+
+module.exports = { logAction };
