@@ -117,13 +117,11 @@ seedSystem();
 const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:5173',
-  process.env.FRONTEND_URL, // e.g. https://sahi-frontend.onrender.com
 ].filter(Boolean);
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (mobile apps, curl, Render health-checks)
-    if (!origin) return callback(null, true);
+    if (!origin || process.env.NODE_ENV === 'production') return callback(null, true);
     if (allowedOrigins.includes(origin)) return callback(null, true);
     callback(new Error(`CORS: origin ${origin} not allowed`));
   },
@@ -149,10 +147,19 @@ app.use('/api/posters', posterRoutes);
 app.use('/api/certificates', certificateRoutes);
 app.use('/api/system', systemRoutes);
 
-// Base route
-app.get('/', (req, res) => {
-  res.send('Sahithyolsav Result Management Platform API is running...');
-});
+// Serve React frontend in production
+if (process.env.NODE_ENV === 'production') {
+  const frontendDist = path.join(__dirname, '../frontend/dist');
+  app.use(express.static(frontendDist));
+  // All non-API routes → React app (so React Router works)
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(frontendDist, 'index.html'));
+  });
+} else {
+  app.get('/', (req, res) => {
+    res.send('Sahithyolsav Result Management Platform API is running...');
+  });
+}
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -167,5 +174,5 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-  console.log(`Server running in development mode on port ${PORT}`);
+  console.log(`Server running on port ${PORT} [${process.env.NODE_ENV || 'development'} mode]`);
 });

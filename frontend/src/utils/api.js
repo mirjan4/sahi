@@ -1,11 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  // In production VITE_API_BASE_URL = https://sahi-backend.onrender.com
-  // In local dev it falls back to '/api' which is proxied by Vite
-  baseURL: import.meta.env.VITE_API_BASE_URL
-    ? `${import.meta.env.VITE_API_BASE_URL}/api`
-    : '/api',
+  baseURL: '/api',
   headers: {
     'Content-Type': 'application/json',
   },
